@@ -16,10 +16,13 @@ class GitHubDownloader
   def list_directory(path)
     url = "#{GITHUB_API_BASE}/repos/#{@owner}/#{@repo}/contents/#{path}?ref=#{@branch}"
 
+    puts "DEBUG: Requesting URL: #{url}"
     response = @curl.get(url, default_headers)
+    puts "DEBUG: Response status: #{response.status_code}"
 
     if response.status_code != 200
       puts "Error: Failed to list directory (HTTP #{response.status_code})"
+      puts "DEBUG: Response body: #{response.body}"
       return nil
     end
 
