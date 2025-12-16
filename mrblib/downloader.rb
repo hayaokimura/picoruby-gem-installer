@@ -79,10 +79,18 @@ class GitHubDownloader
   private
 
   def default_headers
-    {
+    headers = {
       'User-Agent' => 'picogem/1.0',
       'Accept' => 'application/vnd.github.v3+json'
     }
+
+    # GITHUB_TOKEN が設定されている場合は認証ヘッダーを追加
+    github_token = ENV['GITHUB_TOKEN']
+    if github_token && !github_token.empty?
+      headers['Authorization'] = "Bearer #{github_token}"
+    end
+
+    headers
   end
 
   def mkdir_p(path)

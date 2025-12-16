@@ -23,12 +23,16 @@ jobs:
 
       - name: Test picogem list
         run: ./build/linux/picogem list
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Test picogem add picoruby-aht25
         run: |
           mkdir -p test_workspace
           cd test_workspace
           ../build/linux/picogem add picoruby-aht25
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   build-and-test-macos-x86_64:
     runs-on: macos-15-intel
@@ -46,12 +50,16 @@ jobs:
 
       - name: Test picogem list
         run: ./build/darwin-x86_64/picogem list
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Test picogem add picoruby-aht25
         run: |
           mkdir -p test_workspace
           cd test_workspace
           ../build/darwin-x86_64/picogem add picoruby-aht25
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   build-and-test-macos-arm64:
     runs-on: macos-latest
@@ -69,9 +77,13 @@ jobs:
 
       - name: Test picogem list
         run: ./build/darwin-arm64/picogem list
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Test picogem add picoruby-aht25
         run: |
           mkdir -p test_workspace
           cd test_workspace
           ../build/darwin-arm64/picogem add picoruby-aht25
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
