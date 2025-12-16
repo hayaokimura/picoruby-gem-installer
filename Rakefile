@@ -38,6 +38,9 @@ LIBS     = '-lcurl -lssl -lcrypto -lz -lpthread -lm -ldl'
 # osxcross設定
 DARWIN_VERSION = ENV['DARWIN_VERSION'] || '20'
 
+# macOSネイティブビルド判定
+NATIVE_MACOS = RUBY_PLATFORM.include?('darwin')
+
 # ============================
 # デフォルトタスク
 # ============================
@@ -49,13 +52,18 @@ task :help do
     Usage: rake [task]
 
     Tasks:
-      rake              - Build Linux binary (default)
-      rake linux        - Build Linux binary
-      rake macos        - Build macOS binaries (requires osxcross)
-      rake all          - Build for all platforms
-      rake test         - Run basic test
-      rake clean        - Clean build artifacts
-      rake clean_all    - Clean all (including mruby build)
+      rake                      - Build Linux binary (default)
+      rake linux                - Build Linux binary
+      rake macos                - Build macOS binaries (requires osxcross on Linux)
+      rake macos_x86_64         - Build macOS x86_64 binary
+      rake macos_arm64          - Build macOS arm64 binary
+      rake all                  - Build for all platforms
+      rake test                 - Run basic test
+      rake clean                - Clean build artifacts
+      rake clean_all            - Clean all (including mruby build)
+
+    On macOS, binaries are built natively.
+    On Linux, osxcross is required for macOS builds.
   HELP
 end
 
@@ -108,7 +116,7 @@ end
 # ============================
 def build_mruby_cross
   return if Dir.exist?("#{MRUBY_DIR}/build/x86_64-apple-darwin")
-  
+
   puts "=== Building mruby for macOS (cross-compile) ==="
   Dir.chdir(MRUBY_DIR) do
     sh "MRUBY_CONFIG=#{MRUBY_CONFIG} CROSS_MACOS=1 rake"
@@ -126,54 +134,97 @@ end
 # ============================
 # macOS x86_64 バイナリ
 # ============================
-file TARGET_MACOS_X86 => [C_SRC, BYTECODE_C, DIR_MACOS_X86] do
-  build_mruby_cross
-  
+file TARGET_MACOS_X86 => [C_SRC, BYTECODE_C, MRUBY_LIB, DIR_MACOS_X86] do
   puts "=== Building macOS x86_64 binary ==="
-  mruby_lib_macos = "#{MRUBY_DIR}/build/x86_64-apple-darwin/lib/libmruby.a"
-  
-  sh <<~CMD.gsub("\n", " ")
-    #{osxcross_clang('x86_64')}
-    -std=c99 -O2 -Wall
-    -I#{MRUBY_INC} -I#{BUILD_DIR}
-    -mmacosx-version-min=10.13
-    -o #{TARGET_MACOS_X86}
-    #{C_SRC}
-    #{mruby_lib_macos}
-    -lcurl -lz
-  CMD
-  
+
+  if NATIVE_MACOS
+    # macOSネイティブビルド
+    sh <<~CMD.gsub("\n", " ")
+      clang
+      -std=c99 -O2 -Wall
+      -I#{MRUBY_INC} -I#{BUILD_DIR}
+      -arch x86_64
+      -mmacosx-version-min=10.13
+      -o #{TARGET_MACOS_X86}
+      #{C_SRC}
+      #{MRUBY_LIB}
+      -lcurl -lz
+    CMD
+  else
+    # Linuxからのクロスコンパイル（osxcross使用）
+    build_mruby_cross
+    mruby_lib_macos = "#{MRUBY_DIR}/build/x86_64-apple-darwin/lib/libmruby.a"
+
+    sh <<~CMD.gsub("\n", " ")
+      #{osxcross_clang('x86_64')}
+      -std=c99 -O2 -Wall
+      -I#{MRUBY_INC} -I#{BUILD_DIR}
+      -mmacosx-version-min=10.13
+      -o #{TARGET_MACOS_X86}
+      #{C_SRC}
+      #{mruby_lib_macos}
+      -lcurl -lz
+    CMD
+  end
+
   puts "Built: #{TARGET_MACOS_X86}"
+  sh "ls -lh #{TARGET_MACOS_X86}"
 end
 
 # ============================
 # macOS arm64 バイナリ
 # ============================
-file TARGET_MACOS_ARM => [C_SRC, BYTECODE_C, DIR_MACOS_ARM] do
-  build_mruby_cross
-  
+file TARGET_MACOS_ARM => [C_SRC, BYTECODE_C, MRUBY_LIB, DIR_MACOS_ARM] do
   puts "=== Building macOS arm64 binary ==="
-  mruby_lib_macos = "#{MRUBY_DIR}/build/arm64-apple-darwin/lib/libmruby.a"
-  
-  sh <<~CMD.gsub("\n", " ")
-    #{osxcross_clang('arm64')}
-    -std=c99 -O2 -Wall
-    -I#{MRUBY_INC} -I#{BUILD_DIR}
-    -mmacosx-version-min=11.0
-    -arch arm64
-    -o #{TARGET_MACOS_ARM}
-    #{C_SRC}
-    #{mruby_lib_macos}
-    -lcurl -lz
-  CMD
-  
+
+  if NATIVE_MACOS
+    # macOSネイティブビルド
+    sh <<~CMD.gsub("\n", " ")
+      clang
+      -std=c99 -O2 -Wall
+      -I#{MRUBY_INC} -I#{BUILD_DIR}
+      -arch arm64
+      -mmacosx-version-min=11.0
+      -o #{TARGET_MACOS_ARM}
+      #{C_SRC}
+      #{MRUBY_LIB}
+      -lcurl -lz
+    CMD
+  else
+    # Linuxからのクロスコンパイル（osxcross使用）
+    build_mruby_cross
+    mruby_lib_macos = "#{MRUBY_DIR}/build/arm64-apple-darwin/lib/libmruby.a"
+
+    sh <<~CMD.gsub("\n", " ")
+      #{osxcross_clang('arm64')}
+      -std=c99 -O2 -Wall
+      -I#{MRUBY_INC} -I#{BUILD_DIR}
+      -mmacosx-version-min=11.0
+      -arch arm64
+      -o #{TARGET_MACOS_ARM}
+      #{C_SRC}
+      #{mruby_lib_macos}
+      -lcurl -lz
+    CMD
+  end
+
   puts "Built: #{TARGET_MACOS_ARM}"
+  sh "ls -lh #{TARGET_MACOS_ARM}"
 end
+
+# ============================
+# macOS 個別タスク
+# ============================
+desc 'Build macOS x86_64 binary'
+task macos_x86_64: TARGET_MACOS_X86
+
+desc 'Build macOS arm64 binary'
+task macos_arm64: TARGET_MACOS_ARM
 
 # ============================
 # macOS バイナリ（両アーキテクチャ）
 # ============================
-desc 'Build macOS binaries (requires osxcross)'
+desc 'Build macOS binaries (requires osxcross on Linux)'
 task macos: [TARGET_MACOS_X86, TARGET_MACOS_ARM]
 
 # ============================

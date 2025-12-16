@@ -16,10 +16,13 @@ class GitHubDownloader
   def list_directory(path)
     url = "#{GITHUB_API_BASE}/repos/#{@owner}/#{@repo}/contents/#{path}?ref=#{@branch}"
 
+    puts "DEBUG: Requesting URL: #{url}"
     response = @curl.get(url, default_headers)
+    puts "DEBUG: Response status: #{response.status_code}"
 
     if response.status_code != 200
       puts "Error: Failed to list directory (HTTP #{response.status_code})"
+      puts "DEBUG: Response body: #{response.body}"
       return nil
     end
 
@@ -76,10 +79,18 @@ class GitHubDownloader
   private
 
   def default_headers
-    {
+    headers = {
       'User-Agent' => 'picogem/1.0',
       'Accept' => 'application/vnd.github.v3+json'
     }
+
+    # GITHUB_TOKEN が設定されている場合は認証ヘッダーを追加
+    github_token = ENV['GITHUB_TOKEN']
+    if github_token && !github_token.empty?
+      headers['Authorization'] = "Bearer #{github_token}"
+    end
+
+    headers
   end
 
   def mkdir_p(path)

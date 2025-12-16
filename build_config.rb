@@ -10,6 +10,9 @@ def gem_config(conf)
   # exit関数
   conf.gem core: 'mruby-exit'
 
+  # 環境変数アクセス
+  conf.gem github: 'iij/mruby-env'
+
   # HTTP/HTTPS通信（libcurl使用）
   conf.gem github: 'mattn/mruby-curl'
 
@@ -21,18 +24,38 @@ def gem_config(conf)
 end
 
 # ============================
-# Linux ネイティブビルド
+# ネイティブビルド（Linux/macOS）
 # ============================
 MRuby::Build.new do |conf|
-  toolchain :gcc
+  if RUBY_PLATFORM.include?('darwin')
+    # macOS ネイティブビルド
+    toolchain :clang
 
-  conf.cc.flags << '-DCURL_STATICLIB'
+    # Homebrew の OpenSSL パスを追加（Intel/ARM両対応）
+    openssl_prefix = if File.exist?('/opt/homebrew/opt/openssl')
+                       '/opt/homebrew/opt/openssl'  # ARM Mac
+                     elsif File.exist?('/usr/local/opt/openssl')
+                       '/usr/local/opt/openssl'     # Intel Mac
+                     end
 
-  # 静的リンク（配布用）
-  # conf.cc.flags << '-static'
-  # conf.linker.flags << '-static'
+    if openssl_prefix
+      conf.cc.include_paths << "#{openssl_prefix}/include"
+      conf.linker.library_paths << "#{openssl_prefix}/lib"
+    end
 
-  conf.linker.libraries << %w[curl ssl crypto z pthread m]
+    conf.linker.libraries << %w[curl z]
+  else
+    # Linux ネイティブビルド
+    toolchain :gcc
+
+    conf.cc.flags << '-DCURL_STATICLIB'
+
+    # 静的リンク（配布用）
+    # conf.cc.flags << '-static'
+    # conf.linker.flags << '-static'
+
+    conf.linker.libraries << %w[curl ssl crypto z pthread m]
+  end
 
   gem_config(conf)
 
