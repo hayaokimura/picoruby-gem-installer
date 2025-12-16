@@ -1,0 +1,77 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-test-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential ruby bison libcurl4-openssl-dev libssl-dev zlib1g-dev
+
+      - name: Build Linux binary
+        run: rake build/linux/picogem
+
+      - name: Test picogem list
+        run: ./build/linux/picogem list
+
+      - name: Test picogem add picoruby-aht25
+        run: |
+          mkdir -p test_workspace
+          cd test_workspace
+          ../build/linux/picogem add picoruby-aht25
+
+  build-and-test-macos-x86_64:
+    runs-on: macos-13
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install dependencies
+        run: brew install curl
+
+      - name: Build macOS x86_64 binary
+        run: rake build/darwin-x86_64/picogem
+
+      - name: Test picogem list
+        run: ./build/darwin-x86_64/picogem list
+
+      - name: Test picogem add picoruby-aht25
+        run: |
+          mkdir -p test_workspace
+          cd test_workspace
+          ../build/darwin-x86_64/picogem add picoruby-aht25
+
+  build-and-test-macos-arm64:
+    runs-on: macos-14
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install dependencies
+        run: brew install curl
+
+      - name: Build macOS arm64 binary
+        run: rake build/darwin-arm64/picogem
+
+      - name: Test picogem list
+        run: ./build/darwin-arm64/picogem list
+
+      - name: Test picogem add picoruby-aht25
+        run: |
+          mkdir -p test_workspace
+          cd test_workspace
+          ../build/darwin-arm64/picogem add picoruby-aht25
