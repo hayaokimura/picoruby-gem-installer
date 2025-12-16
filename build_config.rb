@@ -10,6 +10,9 @@ def gem_config(conf)
   # exit関数
   conf.gem core: 'mruby-exit'
 
+  # 環境変数アクセス
+  conf.gem github: 'iij/mruby-env'
+
   # HTTP/HTTPS通信（libcurl使用）
   conf.gem github: 'mattn/mruby-curl'
 
