@@ -12,8 +12,15 @@ MRUBY_LIB     = "#{MRUBY_DIR}/build/host/lib/libmruby.a"
 MRUBY_INC     = "#{MRUBY_DIR}/include"
 MRBC          = "#{MRUBY_DIR}/build/host/bin/mrbc"
 
-# ソースファイル
-RUBY_SRC      = 'mrblib/downloader.rb'
+# ソースファイル（依存関係順）
+RUBY_SRCS     = %w[
+  mrblib/github_downloader.rb
+  mrblib/commands.rb
+  mrblib/commands/add.rb
+  mrblib/commands/list.rb
+  mrblib/commands/sync.rb
+  mrblib/picogem.rb
+]
 C_SRC         = 'src/main.c'
 BYTECODE_C    = "#{BUILD_DIR}/app_bytecode.c"
 
@@ -93,9 +100,9 @@ file MRBC => MRUBY_LIB
 # ============================
 # バイトコード生成
 # ============================
-file BYTECODE_C => [RUBY_SRC, MRBC, BUILD_DIR] do
+file BYTECODE_C => [*RUBY_SRCS, MRBC, BUILD_DIR] do
   puts "=== Compiling Ruby to bytecode ==="
-  sh "#{MRBC} -Bapp_bytecode -o #{BYTECODE_C} #{RUBY_SRC}"
+  sh "#{MRBC} -Bapp_bytecode -o #{BYTECODE_C} #{RUBY_SRCS.join(' ')}"
 end
 
 # ============================
