@@ -72,6 +72,36 @@ By default, lists gems in the `runtime_gems` directory of [picoruby/picoruby](ht
 | `-d, --dir DIR` | Directory to list | `runtime_gems` |
 | `-h, --help` | Show help | - |
 
+### Sync files to storage
+
+```sh
+picogem sync <storage_directory>
+```
+
+Syncs local Ruby files to a PicoRuby device storage:
+
+- Copies `*.rb` files from the current directory to `<storage>/home`
+- Copies `*.rb` and `*.mrb` files from `lib/` to `<storage>/lib` (recursively)
+
+#### Examples
+
+```sh
+# Sync to a mounted PicoRuby device (Linux)
+picogem sync /mnt/pico
+
+# Sync to Raspberry Pi Pico (Linux typical mount point)
+picogem sync /media/user/RPI-RP2
+
+# Sync to Raspberry Pi Pico (macOS)
+picogem sync /Volumes/RPI-RP2
+```
+
+#### Options
+
+| Option | Description | Default |
+|--------|-------------|---------|
+| `-h, --help` | Show help | - |
+
 ## Version
 
 ```sh
@@ -84,6 +114,7 @@ picogem --version
 picogem --help
 picogem add --help
 picogem list --help
+picogem sync --help
 ```
 
 ## License
