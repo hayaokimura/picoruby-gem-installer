@@ -172,8 +172,6 @@ module Commands
     end
   end
 
-  private
-
   def self.parse_add_options(args)
     opts = {
       owner: "picoruby",
@@ -292,6 +290,149 @@ module Commands
     puts "  picogem list"
     puts "  picogem list -r mruby/mruby -d mrbgems"
   end
+
+  # sync コマンド - ローカルの .rb ファイルをストレージにコピー
+  def self.sync(args)
+    opts = parse_sync_options(args)
+
+    if opts[:storage].nil?
+      print_sync_usage
+      exit 1
+    end
+
+    storage = opts[:storage]
+
+    puts "=== picogem sync ==="
+    puts "Storage: #{storage}"
+    puts ""
+
+    # コピー先ディレクトリを作成
+    home_dir = "#{storage}/home"
+    lib_dir = "#{storage}/lib"
+
+    mkdir_p(home_dir)
+    mkdir_p(lib_dir)
+
+    # カレントディレクトリの *.rb ファイルを home にコピー
+    puts "Copying *.rb files to #{home_dir}..."
+    copy_rb_files(".", home_dir, false)
+
+    # lib 以下の *.rb ファイルを lib にコピー
+    if File.exist?("lib") && File.directory?("lib")
+      puts "Copying lib/**/*.rb files to #{lib_dir}..."
+      copy_rb_files_recursive("lib", lib_dir)
+    else
+      puts "No lib directory found, skipping lib copy."
+    end
+
+    puts ""
+    puts "Sync completed!"
+  end
+
+  def self.parse_sync_options(args)
+    opts = {
+      storage: nil
+    }
+
+    i = 0
+    positional = []
+
+    while i < args.length
+      arg = args[i]
+
+      case arg
+      when "-h", "--help"
+        print_sync_usage
+        exit 0
+      else
+        positional << arg unless arg.start_with?("-")
+      end
+
+      i += 1
+    end
+
+    opts[:storage] = positional[0] if positional.length > 0
+
+    opts
+  end
+
+  def self.print_sync_usage
+    puts "Usage: picogem sync <storage_directory>"
+    puts ""
+    puts "Sync local Ruby files to storage:"
+    puts "  - Copy *.rb files from current directory to <storage>/home"
+    puts "  - Copy lib/**/*.rb and lib/**/*.mrb files to <storage>/lib"
+    puts ""
+    puts "Options:"
+    puts "  -h, --help             Show this help"
+    puts ""
+    puts "Example:"
+    puts "  picogem sync /mnt/pico"
+    puts "  picogem sync /media/user/RPI-RP2"
+  end
+
+  # ディレクトリの .rb ファイルをコピー（非再帰）
+  def self.copy_rb_files(src_dir, dest_dir, recursive = false)
+    count = 0
+    Dir.entries(src_dir).each do |entry|
+      next if entry == "." || entry == ".."
+
+      src_path = "#{src_dir}/#{entry}"
+
+      if File.file?(src_path) && entry.end_with?(".rb")
+        dest_path = "#{dest_dir}/#{entry}"
+        copy_file(src_path, dest_path)
+        count += 1
+      end
+    end
+    puts "  Copied #{count} file(s)"
+    count
+  end
+
+  # ディレクトリの .rb ファイルを再帰的にコピー
+  def self.copy_rb_files_recursive(src_dir, dest_dir)
+    total_count = 0
+    copy_rb_files_recursive_impl(src_dir, dest_dir, total_count)
+  end
+
+  def self.copy_rb_files_recursive_impl(src_dir, dest_dir, count)
+    Dir.entries(src_dir).each do |entry|
+      next if entry == "." || entry == ".."
+
+      src_path = "#{src_dir}/#{entry}"
+      dest_path = "#{dest_dir}/#{entry}"
+
+      if File.directory?(src_path)
+        mkdir_p(dest_path)
+        copy_rb_files_recursive_impl(src_path, dest_path, count)
+      elsif File.file?(src_path) && (entry.end_with?(".rb") || entry.end_with?(".mrb"))
+        copy_file(src_path, dest_path)
+        count += 1
+      end
+    end
+    puts "  Copied files from #{src_dir}"
+    count
+  end
+
+  # ファイルをコピー
+  def self.copy_file(src, dest)
+    content = File.open(src, 'rb') { |f| f.read }
+    File.open(dest, 'wb') { |f| f.write(content) }
+    puts "    #{src} -> #{dest}"
+  end
+
+  # ディレクトリを再帰的に作成
+  def self.mkdir_p(path)
+    parts = path.split('/')
+    current = ""
+    parts.each do |part|
+      next if part.empty?
+      current = current.empty? ? part : "#{current}/#{part}"
+      # 絶対パスの場合は先頭の / を追加
+      current = "/#{current}" if path.start_with?("/") && !current.start_with?("/")
+      Dir.mkdir(current) unless File.exist?(current)
+    end
+  end
 end
 
 # ============================
@@ -303,6 +444,7 @@ def print_usage
   puts "Commands:"
   puts "  add <package>    Download a PicoRuby gem"
   puts "  list             List available runtime gems"
+  puts "  sync <storage>   Sync local .rb files to storage"
   puts ""
   puts "Options:"
   puts "  -h, --help       Show this help"
@@ -311,6 +453,7 @@ def print_usage
   puts "Example:"
   puts "  picogem add picoruby-mcp3424"
   puts "  picogem list"
+  puts "  picogem sync /mnt/pico"
   puts ""
   puts "Run 'picogem <command> --help' for more information on a command."
 end
@@ -334,6 +477,8 @@ if __FILE__ == $PROGRAM_NAME || ARGV.length > 0
     Commands.add(args)
   when "list"
     Commands.list(args)
+  when "sync"
+    Commands.sync(args)
   when "-h", "--help"
     print_usage
     exit 0
