@@ -19,47 +19,4 @@ module Commands
     File.open(dest, 'wb') { |f| f.write(content) }
     puts "    #{src} -> #{dest}"
   end
-
-  # ディレクトリの .rb ファイルをコピー（非再帰）
-  def self.copy_rb_files(src_dir, dest_dir, recursive = false)
-    count = 0
-    Dir.entries(src_dir).each do |entry|
-      next if entry == "." || entry == ".."
-
-      src_path = "#{src_dir}/#{entry}"
-
-      if File.file?(src_path) && entry.end_with?(".rb")
-        dest_path = "#{dest_dir}/#{entry}"
-        copy_file(src_path, dest_path)
-        count += 1
-      end
-    end
-    puts "  Copied #{count} file(s)"
-    count
-  end
-
-  # ディレクトリの .rb ファイルを再帰的にコピー
-  def self.copy_rb_files_recursive(src_dir, dest_dir)
-    total_count = 0
-    copy_rb_files_recursive_impl(src_dir, dest_dir, total_count)
-  end
-
-  def self.copy_rb_files_recursive_impl(src_dir, dest_dir, count)
-    Dir.entries(src_dir).each do |entry|
-      next if entry == "." || entry == ".."
-
-      src_path = "#{src_dir}/#{entry}"
-      dest_path = "#{dest_dir}/#{entry}"
-
-      if File.directory?(src_path)
-        mkdir_p(dest_path)
-        copy_rb_files_recursive_impl(src_path, dest_path, count)
-      elsif File.file?(src_path) && (entry.end_with?(".rb") || entry.end_with?(".mrb"))
-        copy_file(src_path, dest_path)
-        count += 1
-      end
-    end
-    puts "  Copied files from #{src_dir}"
-    count
-  end
 end
