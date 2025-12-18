@@ -102,6 +102,14 @@ picogem sync /Volumes/RPI-RP2
 |--------|-------------|---------|
 | `-h, --help` | Show help | - |
 
+## Global Options
+
+| Option | Description |
+|--------|-------------|
+| `-v, --version` | Show version |
+| `-h, --help` | Show help |
+| `--debug` | Show debug output |
+
 ## Version
 
 ```sh
