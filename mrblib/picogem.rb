@@ -1,7 +1,7 @@
 # picogem - PicoRuby Gem Manager
 # Main entry point
 
-VERSION = "0.4.0"
+VERSION = "0.5.0"
 REPO_OWNER = "hayaokimura"
 REPO_NAME = "picoruby-gem-installer"
 
