@@ -94,13 +94,25 @@ picogem sync /media/user/RPI-RP2
 
 # Sync to Raspberry Pi Pico (macOS)
 picogem sync /Volumes/RPI-RP2
+
+# Watch mode: auto-sync on file changes
+picogem sync --watch /mnt/pico
 ```
 
 #### Options
 
 | Option | Description | Default |
 |--------|-------------|---------|
+| `-w, --watch` | Watch for file changes and auto-sync | - |
 | `-h, --help` | Show help | - |
+
+#### Watch Mode
+
+With the `--watch` option, picogem continuously monitors your source files and automatically syncs changes to the storage device:
+
+- Detects new, modified, and deleted files
+- Syncs changes automatically when detected
+- Press `Ctrl+C` to stop watching
 
 ## Version
 
