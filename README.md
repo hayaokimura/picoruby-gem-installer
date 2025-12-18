@@ -28,6 +28,16 @@ If installed to `~/.local/bin`, add it to your PATH:
 export PATH="$HOME/.local/bin:$PATH"
 ```
 
+## Updating
+
+To update picogem to the latest version, simply run the install command again:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/hayaokimura/picoruby-gem-installer/main/install.sh | sh
+```
+
+When a new version is available, picogem will notify you on startup.
+
 ## Usage
 
 ### Add a gem

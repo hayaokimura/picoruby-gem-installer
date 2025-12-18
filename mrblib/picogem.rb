@@ -14,7 +14,6 @@ def print_usage
   puts "  add <package>    Download a PicoRuby gem"
   puts "  list             List available runtime gems"
   puts "  sync <storage>   Sync local .rb files to storage"
-  puts "  update           Update picogem to the latest version"
   puts ""
   puts "Options:"
   puts "  -h, --help       Show this help"
@@ -25,7 +24,6 @@ def print_usage
   puts "  picogem add picoruby-mcp3424"
   puts "  picogem list"
   puts "  picogem sync /mnt/pico"
-  puts "  picogem update"
   puts ""
   puts "Run 'picogem <command> --help' for more information on a command."
 end
@@ -57,7 +55,7 @@ def check_for_updates
 
     if is_newer
       puts "New version available: #{latest_version} (current: #{VERSION})"
-      puts "Run 'picogem update' to update."
+      puts "To update, run: curl -fsSL https://raw.githubusercontent.com/#{REPO_OWNER}/#{REPO_NAME}/main/install.sh | bash"
       puts ""
     end
   rescue
@@ -91,8 +89,6 @@ if __FILE__ == $PROGRAM_NAME || ARGV.length > 0
     Commands.list(args)
   when "sync"
     Commands.sync(args)
-  when "update"
-    Commands.update(args)
   when "-h", "--help"
     print_usage
     exit 0
