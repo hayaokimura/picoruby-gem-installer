@@ -19,6 +19,7 @@ RUBY_SRCS     = %w[
   mrblib/commands/add.rb
   mrblib/commands/list.rb
   mrblib/commands/sync.rb
+  mrblib/commands/update.rb
   mrblib/picogem.rb
 ]
 C_SRC         = 'src/main.c'
