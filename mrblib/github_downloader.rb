@@ -13,7 +13,8 @@ class GitHubDownloader
   end
 
   # ディレクトリ内のファイル一覧を取得（GitHub API使用）
-  def list_directory(path)
+  # silent: true の場合、エラーメッセージを表示しない
+  def list_directory(path, silent = false)
     url = "#{GITHUB_API_BASE}/repos/#{@owner}/#{@repo}/contents/#{path}?ref=#{@branch}"
 
     puts "DEBUG: Requesting URL: #{url}" if $debug
@@ -21,7 +22,9 @@ class GitHubDownloader
     puts "DEBUG: Response status: #{response.status_code}" if $debug
 
     if response.status_code != 200
-      puts "Error: Failed to list directory (HTTP #{response.status_code})"
+      unless silent
+        puts "Error: Failed to list directory (HTTP #{response.status_code})"
+      end
       puts "DEBUG: Response body: #{response.body}" if $debug
       return nil
     end

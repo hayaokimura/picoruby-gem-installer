@@ -33,26 +33,44 @@ export PATH="$HOME/.local/bin:$PATH"
 ### Add a gem
 
 ```sh
-picogem add <package>
+picogem add <gem-name> [options]
+picogem add --repo <github-url> [options]
 ```
 
-By default, gems are downloaded from the `runtime_gems` directory of [picoruby/picoruby](https://github.com/picoruby/picoruby).
+Download and compile a mrbgem from GitHub.
 
-#### Examples
+#### Modes
+
+**1. Gem name mode (default)**
+
+Downloads from the [picoruby/picoruby](https://github.com/picoruby/picoruby) repository.
+
+- Branch: `master`
+- Path: `mrbgems/<gem-name>/mrblib`
 
 ```sh
-# Download a PicoRuby runtime gem
-picogem add picoruby-mcp3424
+picogem add picoruby-aht25
+```
+
+**2. Repository mode (`--repo`)**
+
+Downloads from a specified GitHub repository.
+
+- Branch: `main`
+- Path: `mrblib`
+
+```sh
+picogem add --repo https://github.com/ksbmyk/picoruby-ws2812
+picogem add --repo ksbmyk/picoruby-ws2812
 ```
 
 #### Options
 
 | Option | Description | Default |
 |--------|-------------|---------|
-| `-r, --repo OWNER/REPO` | GitHub repository | `picoruby/picoruby` |
-| `-b, --branch BRANCH` | Branch name | `master` |
-| `-d, --dir DIR` | Base directory in the repository | `runtime_gems` |
-| `-o, --output DIR` | Output directory | `lib` |
+| `-r, --repo URL` | GitHub repository URL or owner/repo | - |
+| `-b, --branch BRANCH` | Branch name | `master` (gem name mode) / `main` (repo mode) |
+| `-o, --output DIR` | Output directory for compiled .mrb files | `lib` |
 | `-h, --help` | Show help | - |
 
 ### List available gems
