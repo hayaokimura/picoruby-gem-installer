@@ -106,6 +106,7 @@ picogem sync --watch /mnt/pico
 | `-w, --watch` | Watch for file changes and auto-sync | - |
 | `-h, --help` | Show help | - |
 
+
 #### Watch Mode
 
 With the `--watch` option, picogem continuously monitors your source files and automatically syncs changes to the storage device:
@@ -114,20 +115,13 @@ With the `--watch` option, picogem continuously monitors your source files and a
 - Syncs changes automatically when detected
 - Press `Ctrl+C` to stop watching
 
-## Version
+## Global Options
 
-```sh
-picogem --version
-```
-
-## Help
-
-```sh
-picogem --help
-picogem add --help
-picogem list --help
-picogem sync --help
-```
+| Option | Description |
+|--------|-------------|
+| `-v, --version` | Show version |
+| `-h, --help` | Show help |
+| `--debug` | Show debug output |
 
 ## License
 

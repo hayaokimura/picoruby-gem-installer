@@ -1,6 +1,12 @@
 # picogem - PicoRuby Gem Manager
 # Main entry point
 
+VERSION = "0.3.0"
+REPO_OWNER = "hayaokimura"
+REPO_NAME = "picoruby-gem-installer"
+
+$debug = false
+
 def print_usage
   puts "Usage: picogem <command> [options]"
   puts ""
@@ -12,6 +18,7 @@ def print_usage
   puts "Options:"
   puts "  -h, --help       Show this help"
   puts "  -v, --version    Show version"
+  puts "  --debug          Show debug output"
   puts ""
   puts "Example:"
   puts "  picogem add picoruby-mcp3424"
@@ -22,11 +29,51 @@ def print_usage
 end
 
 def print_version
-  puts "0.3.0"
+  puts VERSION
+end
+
+def check_for_updates
+  begin
+    latest_version = GitHubDownloader.fetch_latest_release(REPO_OWNER, REPO_NAME)
+    return if latest_version.nil?
+    return if latest_version == VERSION
+
+    # バージョン比較（新しいバージョンがある場合のみ通知）
+    current_parts = VERSION.split('.').map(&:to_i)
+    latest_parts = latest_version.split('.').map(&:to_i)
+
+    is_newer = false
+    latest_parts.each_with_index do |part, i|
+      current_part = current_parts[i] || 0
+      if part > current_part
+        is_newer = true
+        break
+      elsif part < current_part
+        break
+      end
+    end
+
+    if is_newer
+      puts "New version available: #{latest_version} (current: #{VERSION})"
+      puts "Download: https://github.com/#{REPO_OWNER}/#{REPO_NAME}/releases/latest"
+      puts ""
+    end
+  rescue
+    # ネットワークエラー等は無視して続行
+  end
 end
 
 # メイン実行
 if __FILE__ == $PROGRAM_NAME || ARGV.length > 0
+  # --debug オプションをチェック
+  if ARGV.include?("--debug")
+    $debug = true
+    ARGV.delete("--debug")
+  end
+
+  # 最初にアップデートチェック
+  check_for_updates
+
   if ARGV.length == 0
     print_usage
     exit 1

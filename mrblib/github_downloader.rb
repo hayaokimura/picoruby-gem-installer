@@ -16,13 +16,13 @@ class GitHubDownloader
   def list_directory(path)
     url = "#{GITHUB_API_BASE}/repos/#{@owner}/#{@repo}/contents/#{path}?ref=#{@branch}"
 
-    puts "DEBUG: Requesting URL: #{url}"
+    puts "DEBUG: Requesting URL: #{url}" if $debug
     response = @curl.get(url, default_headers)
-    puts "DEBUG: Response status: #{response.status_code}"
+    puts "DEBUG: Response status: #{response.status_code}" if $debug
 
     if response.status_code != 200
       puts "Error: Failed to list directory (HTTP #{response.status_code})"
-      puts "DEBUG: Response body: #{response.body}"
+      puts "DEBUG: Response body: #{response.body}" if $debug
       return nil
     end
 
@@ -51,6 +51,38 @@ class GitHubDownloader
 
     puts "  Saved: #{local_path} (#{response.body.length} bytes)"
     true
+  end
+
+  # 最新リリースのバージョンを取得
+  def self.fetch_latest_release(owner, repo)
+    curl = Curl.new
+    url = "#{GITHUB_API_BASE}/repos/#{owner}/#{repo}/releases/latest"
+
+    headers = {
+      'User-Agent' => 'picogem/1.0',
+      'Accept' => 'application/vnd.github.v3+json'
+    }
+
+    github_token = ENV['GITHUB_TOKEN']
+    if github_token && !github_token.empty?
+      headers['Authorization'] = "Bearer #{github_token}"
+    end
+
+    begin
+      response = curl.get(url, headers)
+      return nil if response.status_code != 200
+
+      data = JSON.parse(response.body)
+      tag_name = data["tag_name"]
+      # "v0.3.0" -> "0.3.0" のように先頭の "v" を除去
+      if tag_name.start_with?("v")
+        tag_name[1..-1]
+      else
+        tag_name
+      end
+    rescue
+      nil
+    end
   end
 
   # ディレクトリを再帰的にダウンロード
