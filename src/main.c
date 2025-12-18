@@ -14,6 +14,7 @@
 #include <mruby/array.h>
 #include <mruby/string.h>
 #include <mruby/variable.h>
+#include <mruby/class.h>
 
 /* mrbc -B で生成されるバイトコード */
 #include "app_bytecode.c"
@@ -48,8 +49,17 @@ int main(int argc, char *argv[])
     
     /* 例外チェック */
     if (mrb->exc) {
-        mrb_print_error(mrb);
-        return_code = 1;
+        mrb_value exc = mrb_obj_value(mrb->exc);
+        struct RClass *system_exit = mrb_class_get(mrb, "SystemExit");
+
+        if (mrb_obj_is_kind_of(mrb, exc, system_exit)) {
+            /* SystemExit の status を取得 */
+            mrb_value status = mrb_iv_get(mrb, exc, mrb_intern_lit(mrb, "status"));
+            return_code = mrb_nil_p(status) ? 0 : mrb_fixnum(status);
+        } else {
+            mrb_print_error(mrb);
+            return_code = 1;
+        }
     }
     
     /* クリーンアップ */
