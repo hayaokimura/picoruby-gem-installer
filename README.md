@@ -123,21 +123,6 @@ With the `--watch` option, picogem continuously monitors your source files and a
 | `-h, --help` | Show help |
 | `--debug` | Show debug output |
 
-## Version
-
-```sh
-picogem --version
-```
-
-## Help
-
-```sh
-picogem --help
-picogem add --help
-picogem list --help
-picogem sync --help
-```
-
 ## License
 
 MIT License
