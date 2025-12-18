@@ -22,7 +22,7 @@ def print_usage
 end
 
 def print_version
-  puts "picogem version 1.0.0"
+  puts "0.3.0"
 end
 
 # メイン実行
